@@ -129,6 +129,7 @@ Smoke test:
 ```bash
 PYTHONPATH=src python scripts/train_qwen_vl_scorer.py \
   --config configs/scorer_qwen2_5_vl_lora.yaml \
+  --model-name-or-path /root/autodl-tmp/hf_models/Qwen2.5-VL-3B-Instruct \
   --train-path /root/autodl-tmp/GUI-PRM/data/scorer/aitw_single/unseen_subject_train_1000_splits/train.jsonl \
   --val-path /root/autodl-tmp/GUI-PRM/data/scorer/aitw_single/unseen_subject_train_1000_splits/val.jsonl \
   --image-root /root/autodl-tmp/GUI-PRM \
@@ -137,6 +138,21 @@ PYTHONPATH=src python scripts/train_qwen_vl_scorer.py \
   --max-train-samples 100 \
   --max-val-samples 64 \
   --max-steps 10
+```
+
+Evaluate the smoke adapter:
+
+```bash
+PYTHONPATH=src python scripts/evaluate_qwen_vl_scorer.py \
+  --config configs/scorer_qwen2_5_vl_lora.yaml \
+  --model-name-or-path /root/autodl-tmp/hf_models/Qwen2.5-VL-3B-Instruct \
+  --adapter-path /root/autodl-tmp/GUI-PRM/outputs/qwen_scorer_smoke \
+  --input /root/autodl-tmp/GUI-PRM/data/scorer/aitw_single/unseen_subject_train_1000_splits/val.jsonl \
+  --image-root /root/autodl-tmp/GUI-PRM \
+  --output /root/autodl-tmp/GUI-PRM/reports/aitw_single/qwen_scorer_smoke_val_eval.json \
+  --predictions-output /root/autodl-tmp/GUI-PRM/reports/aitw_single/qwen_scorer_smoke_val_predictions.jsonl \
+  --attn-implementation eager \
+  --max-samples 128
 ```
 
 Full first pass:
