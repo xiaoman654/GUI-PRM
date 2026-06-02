@@ -43,6 +43,45 @@ def image_src(image: str, image_root: str | Path | None) -> str:
     return html.escape(image_path.as_posix())
 
 
+def normalized_point_style(point: Any) -> str | None:
+    if not isinstance(point, list | tuple) or len(point) != 2:
+        return None
+    try:
+        x = max(0.0, min(1.0, float(point[0])))
+        y = max(0.0, min(1.0, float(point[1])))
+    except (TypeError, ValueError):
+        return None
+    return f"left: {x * 100:.3f}%; top: {y * 100:.3f}%;"
+
+
+def action_markers(record: dict[str, Any]) -> str:
+    action = record.get("candidate_action") or {}
+    action_type = str(action.get("type", ""))
+    markers = []
+    if action_type == "click":
+        style = normalized_point_style(action.get("point"))
+        if style:
+            markers.append(f'<span class="marker click" style="{style}" title="candidate click"></span>')
+    elif action_type in {"swipe", "scroll"}:
+        start_style = normalized_point_style(action.get("start_point"))
+        end_style = normalized_point_style(action.get("end_point"))
+        if start_style:
+            markers.append(f'<span class="marker start" style="{start_style}" title="swipe start">S</span>')
+        if end_style:
+            markers.append(f'<span class="marker end" style="{end_style}" title="swipe end">E</span>')
+    return "".join(markers)
+
+
+def screen_aspect_ratio(record: dict[str, Any]) -> str:
+    screen_size = record.get("screen_size") or {}
+    try:
+        width = int(screen_size.get("width") or 720)
+        height = int(screen_size.get("height") or 1520)
+    except (TypeError, ValueError):
+        width, height = 720, 1520
+    return f"{max(width, 1)} / {max(height, 1)}"
+
+
 def render_html(records: list[dict[str, Any]], output_path: str | Path, limit: int, image_root: str | Path | None) -> None:
     html_path = Path(output_path)
     html_path.parent.mkdir(parents=True, exist_ok=True)
@@ -58,6 +97,8 @@ def render_html(records: list[dict[str, Any]], output_path: str | Path, limit: i
         action = html.escape(str(record.get("candidate_action_text", "")))
         raw_pred = html.escape(str(record.get("prediction_raw", "")))
         src = image_src(str(record.get("image", "")), image_root)
+        markers = action_markers(record)
+        aspect_ratio = screen_aspect_ratio(record)
         cards.append(
             f"""
             <section class="card">
@@ -67,7 +108,10 @@ def render_html(records: list[dict[str, Any]], output_path: str | Path, limit: i
                 <span>{negative_type}</span>
                 <span>{action_type}</span>
               </div>
-              <img src="{src}" alt="screen {idx}" />
+              <div class="screen" style="aspect-ratio: {aspect_ratio};">
+                <img src="{src}" alt="screen {idx}" />
+                {markers}
+              </div>
               <div class="text"><strong>Instruction</strong><br>{instruction}</div>
               <div class="text"><strong>Candidate</strong><br><code>{action}</code></div>
               <div class="text"><strong>Raw prediction</strong><br><code>{raw_pred}</code></div>
@@ -120,12 +164,47 @@ def render_html(records: list[dict[str, Any]], output_path: str | Path, limit: i
       background: #eef1f6;
       border-radius: 4px;
     }}
-    img {{
-      display: block;
+    .screen {{
+      position: relative;
       width: 100%;
       max-height: 520px;
-      object-fit: contain;
       background: #111318;
+      overflow: hidden;
+    }}
+    img {{
+      position: absolute;
+      inset: 0;
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: fill;
+    }}
+    .marker {{
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      box-sizing: border-box;
+      z-index: 2;
+      box-shadow: 0 0 0 2px #ffffff, 0 2px 8px rgba(0, 0, 0, 0.45);
+      font-size: 10px;
+      line-height: 18px;
+      text-align: center;
+      font-weight: 700;
+      color: #ffffff;
+    }}
+    .marker.click {{
+      background: #e11900;
+      border: 2px solid #7a0b00;
+    }}
+    .marker.start {{
+      background: #098b45;
+      border: 2px solid #004d24;
+    }}
+    .marker.end {{
+      background: #e11900;
+      border: 2px solid #7a0b00;
     }}
     .text {{
       padding: 10px;
