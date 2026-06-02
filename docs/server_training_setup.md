@@ -86,6 +86,19 @@ PYTHONPATH=src python scripts/build_scorer_dataset.py \
   --output data/scorer/aitw_single/unseen_subject_train_1000_scorer_yesno.jsonl
 ```
 
+Split by instruction before training:
+
+```bash
+PYTHONPATH=src python scripts/split_scorer_dataset.py \
+  --input data/scorer/aitw_single/unseen_subject_train_1000_scorer_yesno.jsonl \
+  --output-dir data/scorer/aitw_single/unseen_subject_train_1000_splits
+
+PYTHONPATH=src python scripts/summarize_scorer_dataset.py \
+  --input data/scorer/aitw_single/unseen_subject_train_1000_splits/train.jsonl \
+  --output reports/aitw_single/scorer_train_summary.json \
+  --image-root .
+```
+
 ## 6. Rule Reward Baseline
 
 ```bash

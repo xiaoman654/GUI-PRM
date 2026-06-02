@@ -76,6 +76,8 @@ python scripts/run_audit.py --input data/interim/steps.jsonl --output data/proce
 python scripts/select_qdd_samples.py --input data/processed/audited_steps.jsonl --output data/processed/qdd_selected_steps.jsonl --max-samples 200
 python scripts/build_preferences.py --input data/processed/audited_steps.jsonl --output data/preferences/pairs.jsonl
 python scripts/build_scorer_dataset.py --input data/preferences/pairs.jsonl --output data/scorer/scorer_yesno.jsonl
+python scripts/split_scorer_dataset.py --input data/scorer/scorer_yesno.jsonl --output-dir data/scorer/splits
+python scripts/summarize_scorer_dataset.py --input data/scorer/splits/train.jsonl --output reports/scorer_train_summary.json
 python scripts/evaluate_rule_reward_on_pairs.py --input data/preferences/pairs.jsonl --output reports/rule_reward_baseline.json
 ```
 
