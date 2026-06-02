@@ -12,7 +12,7 @@ data:
 
 prompt:
   system: You are a GUI action verifier. Answer only Yes or No.
-  question: Is the candidate action correct for the current screen and instruction?
+  question: Is executing this exact candidate action at this exact location correct now for the current screen and instruction? Do not answer Yes just because the page or region is generally relevant.
 
 training:
   output_dir: outputs/qwen2_5_vl_3b_action_scorer_lora
