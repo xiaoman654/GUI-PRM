@@ -164,7 +164,8 @@ PYTHONPATH=src python scripts/inspect_scorer_errors.py \
   --errors-output /root/autodl-tmp/GUI-PRM/reports/aitw_single/qwen_scorer_1k_test_false_positive_errors.jsonl \
   --html-output /root/autodl-tmp/GUI-PRM/reports/aitw_single/qwen_scorer_1k_test_false_positive_errors.html \
   --image-root /root/autodl-tmp/GUI-PRM \
-  --focus No->Yes \
+  --pairs /root/autodl-tmp/GUI-PRM/data/preferences/aitw_single/unseen_subject_train_1000_pairs.jsonl \
+  --focus "No->Yes" \
   --limit 80
 ```
 
