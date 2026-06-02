@@ -155,6 +155,19 @@ PYTHONPATH=src python scripts/evaluate_qwen_vl_scorer.py \
   --max-samples 128
 ```
 
+Inspect false positives after evaluation:
+
+```bash
+PYTHONPATH=src python scripts/inspect_scorer_errors.py \
+  --input /root/autodl-tmp/GUI-PRM/reports/aitw_single/qwen_scorer_1k_test_predictions.jsonl \
+  --summary-output /root/autodl-tmp/GUI-PRM/reports/aitw_single/qwen_scorer_1k_test_error_summary.json \
+  --errors-output /root/autodl-tmp/GUI-PRM/reports/aitw_single/qwen_scorer_1k_test_false_positive_errors.jsonl \
+  --html-output /root/autodl-tmp/GUI-PRM/reports/aitw_single/qwen_scorer_1k_test_false_positive_errors.html \
+  --image-root /root/autodl-tmp/GUI-PRM \
+  --focus No->Yes \
+  --limit 80
+```
+
 Full first pass:
 
 ```bash
