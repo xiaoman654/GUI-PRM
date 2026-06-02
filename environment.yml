@@ -1,0 +1,12 @@
+name: mobile-gui-agent-data
+channels:
+  - pytorch
+  - nvidia
+  - conda-forge
+dependencies:
+  - python=3.10
+  - pip
+  - git
+  - git-lfs
+  - pip:
+      - -r requirements.txt

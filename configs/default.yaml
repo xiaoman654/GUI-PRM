@@ -1,0 +1,51 @@
+project:
+  name: mobile-gui-agent-data-centric
+  seed: 42
+
+schema:
+  coordinate_space: normalized_1000
+  allowed_action_types:
+    - click
+    - type
+    - scroll
+    - back
+    - home
+    - wait
+    - finish
+    - impossible
+
+audit:
+  min_episode_steps: 2
+  max_episode_steps: 80
+  max_text_length: 256
+  duplicate_click_radius_px: 8
+  low_state_change_threshold: 0.01
+  quality_thresholds:
+    high: 0.8
+    medium: 0.5
+
+reward:
+  coordinate_tau_px: 80.0
+  weights:
+    format: 1.0
+    action_type: 1.0
+    coordinate: 1.0
+    text: 1.0
+    state_change: 0.5
+    risk: 0.5
+
+preference:
+  negatives_per_step: 4
+  strategies:
+    - random_coordinate
+    - shifted_coordinate
+    - wrong_action_type
+    - same_episode_other_step
+
+evaluation:
+  grounding:
+    distance_threshold_px: 50
+    coordinate_error: normalized_diagonal
+  top_k:
+    - 1
+    - 3

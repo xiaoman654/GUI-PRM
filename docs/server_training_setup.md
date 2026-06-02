@@ -1,0 +1,96 @@
+# Server Training Setup
+
+This project should be uploaded to GitHub without generated data, screenshots,
+checkpoints, or reports. The server can regenerate AITW samples from Hugging
+Face.
+
+## 1. Clone
+
+```bash
+git clone <your-repo-url>
+cd <repo>
+```
+
+## 2. Create Environment
+
+```bash
+conda env create -f environment.yml
+conda activate mobile-gui-agent-data
+python -m pip install -e .
+```
+
+If the server already has a CUDA/PyTorch stack managed by the admin, create the
+environment first, then install the matching PyTorch build following the server
+CUDA version.
+
+## 3. Verify GPU Environment
+
+```bash
+python scripts/verify_training_environment.py
+```
+
+Expected for A800:
+
+```text
+cuda.available = true
+device_count >= 1
+device name contains A800
+```
+
+## 4. Prepare AITW Single Data
+
+Small smoke test:
+
+```bash
+PYTHONPATH=src python scripts/prepare_aitw_single_sample.py \
+  --subset unseen_subject \
+  --split train \
+  --limit 1000 \
+  --qdd-samples 200
+```
+
+This regenerates:
+
+```text
+data/raw/aitw_single/
+data/interim/aitw_single/
+data/processed/aitw_single/
+data/preferences/aitw_single/
+data/scorer/aitw_single/
+reports/aitw_single/
+```
+
+These paths are ignored by Git.
+
+## 5. Build Scorer Data
+
+```bash
+PYTHONPATH=src python scripts/build_scorer_dataset.py \
+  --input data/preferences/aitw_single/unseen_subject_train_1000_pairs.jsonl \
+  --output data/scorer/aitw_single/unseen_subject_train_1000_scorer_yesno.jsonl
+```
+
+## 6. Rule Reward Baseline
+
+```bash
+PYTHONPATH=src python scripts/evaluate_rule_reward_on_pairs.py \
+  --input data/preferences/aitw_single/unseen_subject_train_1000_pairs.jsonl \
+  --output reports/aitw_single/unseen_subject_train_1000_rule_reward_baseline.json
+```
+
+## 7. Next Training Target
+
+The planned first model experiment is a Qwen2.5-VL-3B LoRA Yes/No action scorer:
+
+```text
+image + instruction + candidate_action -> Yes / No
+```
+
+The starting config is:
+
+```text
+configs/scorer_qwen2_5_vl_lora.yaml
+```
+
+Before full training, create instruction-wise train/val/test splits for the
+scorer JSONL and run a 100-sample overfit test.
