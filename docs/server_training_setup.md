@@ -23,6 +23,22 @@ If the server already has a CUDA/PyTorch stack managed by the admin, create the
 environment first, then install the matching PyTorch build following the server
 CUDA version.
 
+For AutoDL images with a preinstalled CUDA PyTorch, avoid reinstalling `torch`
+from the general `requirements.txt`. Use:
+
+```bash
+pip install -r requirements-server.txt
+pip install -e .
+```
+
+If `transformers` disables PyTorch or NumPy reports ABI errors, repair the
+environment with:
+
+```bash
+pip install "numpy==1.26.4"
+pip install "transformers>=4.49,<5" "accelerate>=0.30" "peft>=0.11" qwen-vl-utils
+```
+
 ## 3. Verify GPU Environment
 
 ```bash
