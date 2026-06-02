@@ -123,3 +123,29 @@ configs/scorer_qwen2_5_vl_lora.yaml
 
 Before full training, create instruction-wise train/val/test splits for the
 scorer JSONL and run a 100-sample overfit test.
+
+Smoke test:
+
+```bash
+PYTHONPATH=src python scripts/train_qwen_vl_scorer.py \
+  --config configs/scorer_qwen2_5_vl_lora.yaml \
+  --train-path /root/autodl-tmp/GUI-PRM/data/scorer/aitw_single/unseen_subject_train_1000_splits/train.jsonl \
+  --val-path /root/autodl-tmp/GUI-PRM/data/scorer/aitw_single/unseen_subject_train_1000_splits/val.jsonl \
+  --image-root /root/autodl-tmp/GUI-PRM \
+  --output-dir /root/autodl-tmp/GUI-PRM/outputs/qwen_scorer_smoke \
+  --attn-implementation eager \
+  --max-train-samples 100 \
+  --max-val-samples 64 \
+  --max-steps 10
+```
+
+Full first pass:
+
+```bash
+PYTHONPATH=src python scripts/train_qwen_vl_scorer.py \
+  --config configs/scorer_qwen2_5_vl_lora.yaml \
+  --train-path /root/autodl-tmp/GUI-PRM/data/scorer/aitw_single/unseen_subject_train_1000_splits/train.jsonl \
+  --val-path /root/autodl-tmp/GUI-PRM/data/scorer/aitw_single/unseen_subject_train_1000_splits/val.jsonl \
+  --image-root /root/autodl-tmp/GUI-PRM \
+  --output-dir /root/autodl-tmp/GUI-PRM/outputs/qwen2_5_vl_3b_action_scorer_lora
+```
