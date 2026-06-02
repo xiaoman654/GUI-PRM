@@ -179,3 +179,95 @@ PYTHONPATH=src python scripts/train_qwen_vl_scorer.py \
   --image-root /root/autodl-tmp/GUI-PRM \
   --output-dir /root/autodl-tmp/GUI-PRM/outputs/qwen2_5_vl_3b_action_scorer_lora
 ```
+
+## 8. V2 Negative Data Experiment
+
+Regenerate the same 1000-step sample with the current action-aware negative
+samplers:
+
+```bash
+PYTHONPATH=src python scripts/reprocess_aitw_single_raw.py \
+  --raw /root/autodl-tmp/GUI-PRM/data/raw/aitw_single/unseen_subject_train_1000_with_images.jsonl \
+  --tag unseen_subject_train_1000_v2 \
+  --qdd-samples 200 \
+  --root /root/autodl-tmp/GUI-PRM
+```
+
+Summarize the generated preference pairs before training:
+
+```bash
+PYTHONPATH=src python scripts/summarize_preference_pairs.py \
+  --input /root/autodl-tmp/GUI-PRM/data/preferences/aitw_single/unseen_subject_train_1000_v2_pairs.jsonl \
+  --output /root/autodl-tmp/GUI-PRM/reports/aitw_single/unseen_subject_train_1000_v2_pair_summary.json
+```
+
+Build and split scorer records:
+
+```bash
+PYTHONPATH=src python scripts/build_scorer_dataset.py \
+  --input /root/autodl-tmp/GUI-PRM/data/preferences/aitw_single/unseen_subject_train_1000_v2_pairs.jsonl \
+  --output /root/autodl-tmp/GUI-PRM/data/scorer/aitw_single/unseen_subject_train_1000_v2_scorer_yesno.jsonl
+
+PYTHONPATH=src python scripts/split_scorer_dataset.py \
+  --input /root/autodl-tmp/GUI-PRM/data/scorer/aitw_single/unseen_subject_train_1000_v2_scorer_yesno.jsonl \
+  --output-dir /root/autodl-tmp/GUI-PRM/data/scorer/aitw_single/unseen_subject_train_1000_v2_splits
+```
+
+Train the v2 scorer:
+
+```bash
+PYTHONPATH=src python scripts/train_qwen_vl_scorer.py \
+  --config configs/scorer_qwen2_5_vl_lora.yaml \
+  --model-name-or-path /root/autodl-tmp/hf_models/Qwen2.5-VL-3B-Instruct \
+  --train-path /root/autodl-tmp/GUI-PRM/data/scorer/aitw_single/unseen_subject_train_1000_v2_splits/train.jsonl \
+  --val-path /root/autodl-tmp/GUI-PRM/data/scorer/aitw_single/unseen_subject_train_1000_v2_splits/val.jsonl \
+  --image-root /root/autodl-tmp/GUI-PRM \
+  --output-dir /root/autodl-tmp/GUI-PRM/outputs/qwen_scorer_1k_v2 \
+  --attn-implementation eager
+```
+
+Evaluate v2 on val and test:
+
+```bash
+PYTHONPATH=src python scripts/evaluate_qwen_vl_scorer.py \
+  --config configs/scorer_qwen2_5_vl_lora.yaml \
+  --model-name-or-path /root/autodl-tmp/hf_models/Qwen2.5-VL-3B-Instruct \
+  --adapter-path /root/autodl-tmp/GUI-PRM/outputs/qwen_scorer_1k_v2 \
+  --input /root/autodl-tmp/GUI-PRM/data/scorer/aitw_single/unseen_subject_train_1000_v2_splits/val.jsonl \
+  --image-root /root/autodl-tmp/GUI-PRM \
+  --output /root/autodl-tmp/GUI-PRM/reports/aitw_single/qwen_scorer_1k_v2_val_eval.json \
+  --predictions-output /root/autodl-tmp/GUI-PRM/reports/aitw_single/qwen_scorer_1k_v2_val_predictions.jsonl \
+  --attn-implementation eager
+
+PYTHONPATH=src python scripts/evaluate_qwen_vl_scorer.py \
+  --config configs/scorer_qwen2_5_vl_lora.yaml \
+  --model-name-or-path /root/autodl-tmp/hf_models/Qwen2.5-VL-3B-Instruct \
+  --adapter-path /root/autodl-tmp/GUI-PRM/outputs/qwen_scorer_1k_v2 \
+  --input /root/autodl-tmp/GUI-PRM/data/scorer/aitw_single/unseen_subject_train_1000_v2_splits/test.jsonl \
+  --image-root /root/autodl-tmp/GUI-PRM \
+  --output /root/autodl-tmp/GUI-PRM/reports/aitw_single/qwen_scorer_1k_v2_test_eval.json \
+  --predictions-output /root/autodl-tmp/GUI-PRM/reports/aitw_single/qwen_scorer_1k_v2_test_predictions.jsonl \
+  --attn-implementation eager
+```
+
+Inspect v2 false positives and compare v1 vs v2:
+
+```bash
+PYTHONPATH=src python scripts/inspect_scorer_errors.py \
+  --input /root/autodl-tmp/GUI-PRM/reports/aitw_single/qwen_scorer_1k_v2_test_predictions.jsonl \
+  --summary-output /root/autodl-tmp/GUI-PRM/reports/aitw_single/qwen_scorer_1k_v2_test_error_summary.json \
+  --errors-output /root/autodl-tmp/GUI-PRM/reports/aitw_single/qwen_scorer_1k_v2_test_false_positive_errors.jsonl \
+  --html-output /root/autodl-tmp/GUI-PRM/reports/aitw_single/qwen_scorer_1k_v2_test_false_positive_errors.html \
+  --image-root /root/autodl-tmp/GUI-PRM \
+  --pairs /root/autodl-tmp/GUI-PRM/data/preferences/aitw_single/unseen_subject_train_1000_v2_pairs.jsonl \
+  --focus "No->Yes" \
+  --limit 80
+
+PYTHONPATH=src python scripts/compare_scorer_runs.py \
+  --eval v1=/root/autodl-tmp/GUI-PRM/reports/aitw_single/qwen_scorer_1k_test_eval.json \
+  --eval v2=/root/autodl-tmp/GUI-PRM/reports/aitw_single/qwen_scorer_1k_v2_test_eval.json \
+  --error-summary v1=/root/autodl-tmp/GUI-PRM/reports/aitw_single/qwen_scorer_1k_test_error_summary.json \
+  --error-summary v2=/root/autodl-tmp/GUI-PRM/reports/aitw_single/qwen_scorer_1k_v2_test_error_summary.json \
+  --output /root/autodl-tmp/GUI-PRM/reports/aitw_single/qwen_scorer_1k_v1_vs_v2_comparison.json \
+  --markdown-output /root/autodl-tmp/GUI-PRM/reports/aitw_single/qwen_scorer_1k_v1_vs_v2_comparison.md
+```
