@@ -183,34 +183,21 @@ PYTHONPATH=src python scripts/train_qwen_vl_scorer.py \
 ## 8. V2 Negative Data Experiment
 
 Regenerate the same 1000-step sample with the current action-aware negative
-samplers:
+samplers, then build scorer records, splits, and data-quality summaries:
 
 ```bash
-PYTHONPATH=src python scripts/reprocess_aitw_single_raw.py \
+PYTHONPATH=src python scripts/prepare_scorer_experiment.py \
   --raw /root/autodl-tmp/GUI-PRM/data/raw/aitw_single/unseen_subject_train_1000_with_images.jsonl \
   --tag unseen_subject_train_1000_v2 \
   --qdd-samples 200 \
   --root /root/autodl-tmp/GUI-PRM
 ```
 
-Summarize the generated preference pairs before training:
+Check the generated preference pairs before training:
 
 ```bash
-PYTHONPATH=src python scripts/summarize_preference_pairs.py \
-  --input /root/autodl-tmp/GUI-PRM/data/preferences/aitw_single/unseen_subject_train_1000_v2_pairs.jsonl \
-  --output /root/autodl-tmp/GUI-PRM/reports/aitw_single/unseen_subject_train_1000_v2_pair_summary.json
-```
-
-Build and split scorer records:
-
-```bash
-PYTHONPATH=src python scripts/build_scorer_dataset.py \
-  --input /root/autodl-tmp/GUI-PRM/data/preferences/aitw_single/unseen_subject_train_1000_v2_pairs.jsonl \
-  --output /root/autodl-tmp/GUI-PRM/data/scorer/aitw_single/unseen_subject_train_1000_v2_scorer_yesno.jsonl
-
-PYTHONPATH=src python scripts/split_scorer_dataset.py \
-  --input /root/autodl-tmp/GUI-PRM/data/scorer/aitw_single/unseen_subject_train_1000_v2_scorer_yesno.jsonl \
-  --output-dir /root/autodl-tmp/GUI-PRM/data/scorer/aitw_single/unseen_subject_train_1000_v2_splits
+cat /root/autodl-tmp/GUI-PRM/reports/aitw_single/unseen_subject_train_1000_v2_pair_summary.json
+wc -l /root/autodl-tmp/GUI-PRM/data/scorer/aitw_single/unseen_subject_train_1000_v2_splits/*.jsonl
 ```
 
 Train the v2 scorer:
