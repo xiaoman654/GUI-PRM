@@ -33,6 +33,14 @@ def candidate_action_type(record: dict[str, Any]) -> str:
     return str(action.get("type", "unknown"))
 
 
+def candidate_negative_subtype(record: dict[str, Any]) -> str:
+    action = record.get("candidate_action") or {}
+    metadata = action.get("metadata") or {}
+    if not isinstance(metadata, dict):
+        return "unknown"
+    return str(metadata.get("negative_subtype") or metadata.get("negative_source") or "unknown")
+
+
 def action_primary_point(action: GUIAction | dict[str, Any]) -> tuple[float, float] | None:
     if isinstance(action, GUIAction):
         return action.primary_point()
@@ -430,6 +438,9 @@ def main() -> None:
             Counter(record.get("negative_type") for record in errors if str(record.get("label")) == "No").most_common()
         ),
         "candidate_action_type": dict(Counter(candidate_action_type(record) for record in errors).most_common()),
+        "negative_subtype": dict(
+            Counter(candidate_negative_subtype(record) for record in errors if str(record.get("label")) == "No").most_common()
+        ),
         "distance_bucket": dict(Counter(record.get("distance_bucket", "unknown") for record in errors).most_common()),
         "candidate_in_ui_element": dict(Counter(str(record.get("candidate_in_ui_element", "unknown")) for record in errors).most_common()),
         "same_element_as_gt": dict(Counter(str(record.get("same_element_as_gt", "unknown")) for record in errors).most_common()),

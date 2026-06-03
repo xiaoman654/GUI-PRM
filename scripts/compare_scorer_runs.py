@@ -39,6 +39,7 @@ def summarize_eval(report: dict[str, Any], error_summary: dict[str, Any] | None)
         "false_negative_yes_to_no": confusion.get("Yes->No", 0),
         "prediction_counts": report.get("prediction_counts", {}),
         "negative_type_no_accuracy": report.get("by_negative_type_no_only", {}),
+        "negative_subtype_no_accuracy": report.get("by_negative_subtype_no_only", {}),
         "candidate_action_type_accuracy": report.get("by_candidate_action_type", {}),
     }
     if error_summary is not None:
@@ -63,9 +64,23 @@ def fmt(value: Any) -> str:
 
 def markdown_table(comparison: dict[str, Any]) -> str:
     rows = [
-        ["run", "samples", "accuracy", "yes_acc", "no_acc", "No->Yes", "Yes->No", "shifted_acc", "swipe_acc"],
+        [
+            "run",
+            "samples",
+            "accuracy",
+            "yes_acc",
+            "no_acc",
+            "No->Yes",
+            "Yes->No",
+            "random_acc",
+            "same_screen_acc",
+            "shifted_acc",
+            "swipe_acc",
+        ],
     ]
     for name, summary in comparison["runs"].items():
+        random_acc = metric(summary, ["negative_type_no_accuracy", "random_coordinate", "accuracy"])
+        same_screen_acc = metric(summary, ["negative_type_no_accuracy", "same_screen_element", "accuracy"])
         shifted_acc = metric(summary, ["negative_type_no_accuracy", "shifted_coordinate", "accuracy"])
         swipe_acc = metric(summary, ["candidate_action_type_accuracy", "swipe", "accuracy"])
         rows.append(
@@ -77,6 +92,8 @@ def markdown_table(comparison: dict[str, Any]) -> str:
                 summary.get("no_accuracy"),
                 summary.get("false_positive_no_to_yes"),
                 summary.get("false_negative_yes_to_no"),
+                random_acc,
+                same_screen_acc,
                 shifted_acc,
                 swipe_acc,
             ]
