@@ -2,6 +2,7 @@ import argparse
 import html
 import json
 import math
+import os
 from collections import Counter
 from pathlib import Path
 from typing import Any
@@ -138,10 +139,18 @@ def is_error(record: dict[str, Any]) -> bool:
     return str(record.get("label")) != str(record.get("prediction_label"))
 
 
-def image_src(image: str, image_root: str | Path | None) -> str:
+def image_src(image: str, image_root: str | Path | None, html_dir: Path) -> str:
     image_path = Path(image)
     if not image_path.is_absolute() and image_root is not None:
         image_path = Path(image_root) / image_path
+    if image_path.is_absolute() and image_root is not None:
+        root_path = Path(image_root).resolve()
+        try:
+            image_path.resolve().relative_to(root_path)
+            relative_path = os.path.relpath(image_path, html_dir)
+            return html.escape(Path(relative_path).as_posix())
+        except ValueError:
+            pass
     if image_path.is_absolute():
         return image_path.as_uri()
     return html.escape(image_path.as_posix())
@@ -219,7 +228,7 @@ def render_html(records: list[dict[str, Any]], output_path: str | Path, limit: i
         distance = html.escape(str(record.get("distance_bucket", "")))
         candidate_element = html.escape(str(record.get("candidate_element_text", "")))
         gt_element = html.escape(str(record.get("gt_element_text", "")))
-        src = image_src(str(record.get("image", "")), image_root)
+        src = image_src(str(record.get("image", "")), image_root, html_path.parent)
         markers = action_markers(record)
         aspect_ratio = screen_aspect_ratio(record)
         cards.append(
