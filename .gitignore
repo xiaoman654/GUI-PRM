@@ -24,6 +24,12 @@ data/scorer/*
 
 reports/figures/*
 reports/**/*.json
+reports/**/*.jsonl
+reports/**/*.html
+reports/**/*.png
+reports/effective_regions/
+reports/ui_annotation_regions/
+reports/v3_negative_filter_dry_run/
 !reports/figures/.gitkeep
 
 *.log
